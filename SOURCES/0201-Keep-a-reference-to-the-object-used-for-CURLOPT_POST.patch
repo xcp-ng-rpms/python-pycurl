@@ -1,0 +1,98 @@
+From f1169a50516e34d22a22229113aef46212177417 Mon Sep 17 00:00:00 2001
+From: Oleg Pudeyev <oleg@bsdpower.com>
+Date: Thu, 3 Oct 2013 22:31:31 -0400
+Subject: [PATCH] Keep a reference to the object used for CURLOPT_POSTFIELDS.
+
+Fixes #34
+
+Upstream-commit: b01a04fbd7797c70c5397a1b04abb09e6e4c8a36
+Signed-off-by: Kamil Dudka <kdudka@redhat.com>
+---
+ src/pycurl.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/pycurl.c b/src/pycurl.c
+index 9a7135c..31722ad 100644
+--- a/src/pycurl.c
++++ b/src/pycurl.c
+@@ -149,16 +149,18 @@ typedef struct {
+     PyObject *pro_cb;
+     PyObject *debug_cb;
+     PyObject *ioctl_cb;
+     PyObject *opensocket_cb;
+     /* file objects */
+     PyObject *readdata_fp;
+     PyObject *writedata_fp;
+     PyObject *writeheader_fp;
++    /* reference to the object used for CURLOPT_POSTFIELDS */
++    PyObject *postfields_obj;
+     /* misc */
+     char error[CURL_ERROR_SIZE+1];
+ } CurlObject;
+ 
+ /* Throw exception based on return value `res' and `self->error' */
+ #define CURLERROR_RETVAL() do {\
+     PyObject *v; \
+     self->error[sizeof(self->error) - 1] = 0; \
+@@ -727,16 +729,17 @@ util_curl_new(void)
+     self->debug_cb = NULL;
+     self->ioctl_cb = NULL;
+     self->opensocket_cb = NULL;
+ 
+     /* Set file object pointers to NULL by default */
+     self->readdata_fp = NULL;
+     self->writedata_fp = NULL;
+     self->writeheader_fp = NULL;
++    self->postfields_obj = NULL;
+ 
+     /* Zero string pointer memory buffer used by setopt */
+     memset(self->error, 0, sizeof(self->error));
+ 
+     return self;
+ }
+ 
+ /* initializer - used to intialize curl easy handles for use with pycurl */
+@@ -854,16 +857,17 @@ util_curl_xdecref(CurlObject *self, int flags, CURL *handle)
+         ZAP(self->ioctl_cb);
+     }
+ 
+     if (flags & 8) {
+         /* Decrement refcount for python file objects. */
+         ZAP(self->readdata_fp);
+         ZAP(self->writedata_fp);
+         ZAP(self->writeheader_fp);
++        ZAP(self->postfields_obj);
+     }
+ 
+     if (flags & 16) {
+         /* Decrement refcount for share objects. */
+         if (self->share != NULL) {
+             CurlShareObject *share = self->share;
+             self->share = NULL;
+             if (share->share_handle != NULL && handle != NULL) {
+@@ -1626,16 +1630,22 @@ do_curl_setopt(CurlObject *self, PyObject *args)
+         /* Allocate memory to hold the string */
+         assert(str != NULL);
+         /* Call setopt */
+         res = curl_easy_setopt(self->handle, (CURLoption)option, str);
+         /* Check for errors */
+         if (res != CURLE_OK) {
+             CURLERROR_RETVAL();
+         }
++        /* libcurl does not copy the value of CURLOPT_POSTFIELDS */
++        if (option == CURLOPT_POSTFIELDS) {
++            Py_INCREF(obj);
++            Py_XDECREF(self->postfields_obj);
++            self->postfields_obj = obj;
++        }
+         Py_INCREF(Py_None);
+         return Py_None;
+     }
+ 
+ #define IS_LONG_OPTION(o)   (o < CURLOPTTYPE_OBJECTPOINT)
+ #define IS_OFF_T_OPTION(o)  (o >= CURLOPTTYPE_OFF_T)
+ 
+     /* Handle the case of integer arguments */
+-- 
+2.5.0
+
