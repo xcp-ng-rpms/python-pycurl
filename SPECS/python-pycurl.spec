@@ -29,6 +29,7 @@ Patch201:       0201-Keep-a-reference-to-the-object-used-for-CURLOPT_POST.patch
 Patch202:       0202-Add-libcurl-7.34.0-sslversion-options.patch
 
 Requires:       keyutils-libs
+BuildRequires:  gcc
 BuildRequires:  python-devel
 BuildRequires:  openssl-devel
 
