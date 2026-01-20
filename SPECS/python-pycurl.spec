@@ -36,6 +36,8 @@ BuildRequires:  openssl-devel
 # curl-7.29.0-16 or newer is needed for CURL_SSLVERSION_TLSv1_[0-2]
 BuildRequires:  libcurl-devel >= 7.29.0-16
 
+%define __python /usr/bin/python2
+
 # During its initialization, PycURL checks that the actual libcurl version
 # is not lower than the one used when PycURL was built.
 # Yes, that should be handled by library versioning (which would then get
