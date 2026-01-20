@@ -2,7 +2,7 @@
 
 Name:           python-pycurl
 Version:        7.19.0
-Release:        19%{?dist}
+Release:        19.1%{?dist}
 Summary:        A Python interface to libcurl
 
 Group:          Development/Languages
@@ -57,19 +57,7 @@ urllib Python module. PycURL is mature, very fast, and supports a lot
 of features.
 
 %prep
-%setup0 -q -n pycurl-%{version}
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch101 -p1
-%patch102 -p1
-%patch103 -p1
-%patch104 -p1
-%patch105 -p1
-%patch201 -p1
-%patch202 -p1
+%autosetup -p1 -n pycurl-%{version}
 chmod a-x examples/*
 
 %build
@@ -88,6 +76,12 @@ rm -rf %{buildroot}%{_datadir}/doc/pycurl
 %{python_sitearch}/*
 
 %changelog
+* Tue Jan 20 2026 Philippe Coval <philippe.coval@vates.tech> - 7.19.0-19.1
+- Add gcc to BuildRequires
+- Define __python for modern parser
+- Update obsolete patch macro with autosetup
+- Rebuild with openssl-3
+
 * Mon Sep 07 2015 Kamil Dudka <kdudka@redhat.com> - 7.19.0-19
 - introduce SSLVERSION_TLSv1_[0-2] (#1260407)
 
