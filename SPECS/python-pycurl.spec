@@ -2,7 +2,7 @@
 
 Name:           python-pycurl
 Version:        7.19.0
-Release:        19.1%{?dist}
+Release:        19.1~XCPNG2710.3%{?dist}
 Summary:        A Python interface to libcurl
 
 Group:          Development/Languages
